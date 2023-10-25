@@ -8,6 +8,23 @@ const Anecdote = ({ text }) => {
   return <p>{text}</p>;
 };
 
+const MostVotedAnecdote = ({ anecdotes, votes }) => {
+  const max = Math.max(...votes);
+  const indexOfMax = votes.indexOf(max);
+
+  console.log(max, "max");
+  if (max === 0) {
+    return <p>No votes yet</p>;
+  }
+
+  return (
+    <>
+      <Anecdote text={anecdotes[indexOfMax]} />
+      <p>has {max} votes</p>
+    </>
+  );
+};
+
 const App = () => {
   const anecdotes = [
     "If it hurts, do it more often.",
@@ -41,9 +58,8 @@ const App = () => {
     console.log("max", max);
     console.log("returnme", votes.indexOf(max));
 
-    if (max == 0) return false;
-
-    return votes.indexOf(max);
+    console.log(ret);
+    return ret;
   };
 
   return (
@@ -54,7 +70,7 @@ const App = () => {
       <Button label={"vote"} handleClick={() => addVote(selected)} />
       <Button label={"Next anecdote"} handleClick={selectRandom} />
       <h2>Anecdote with most votes</h2>
-      <Anecdote text={anecdotes[mostVoted()]} />
+      <MostVotedAnecdote votes={votes} anecdotes={anecdotes} />
     </div>
   );
 };

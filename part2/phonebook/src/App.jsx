@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import personService from "./services/persons";
 
-const Persons = ({ name, number }) => {
+const Persons = ({ name, number, handleDelete }) => {
   return (
-    <div key={name}>
-      {name} {number}
+    <div>
+      {name} {number} <button onClick={handleDelete}>delete</button>
     </div>
   );
 };
@@ -41,12 +42,21 @@ const Filter = ({ searchFilter, handleSearchFilter }) => {
 };
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: "Arto Hellas", number: "040-123456" },
-  ]);
+  const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [searchFilter, setSearchFilter] = useState("");
+
+  const hook = () => {
+    console.log("effect");
+    personService.getAll().then((response) => {
+      console.log("promise fulfilled for retrieval");
+      console.log(response.data);
+      setPersons(response.data);
+    });
+  };
+
+  useEffect(hook, []);
 
   const handleNewName = (event) => {
     console.log(event.target.value);
@@ -69,15 +79,59 @@ const App = () => {
     const nameDups = persons.filter((persons) => persons.name === newName);
     console.log(nameDups);
     if (nameDups.length > 0) {
-      alert(`${newName} is already added to the phonebook`);
+      if (
+        confirm(
+          `${newName} is already added to the phonebook, replace the old number with a new one?`
+        )
+      ) {
+        //TODO - update with new number
+        console.log(nameDups);
+        const updatedPerson = { ...nameDups[0], number: newNumber };
+        console.log(updatedPerson, "updated");
+        personService
+          .update(updatedPerson.id, updatedPerson)
+          .then((response) => {
+            console.log(response.data, "data");
+            setPersons(
+              persons.map((person) =>
+                person.id == updatedPerson.id ? response.data : person
+              )
+            );
+          });
+      } else {
+        return;
+      }
       setNewName("");
       setNewNumber("");
       return;
     }
 
-    setPersons(persons.concat({ name: newName, number: newNumber }));
-    setNewName("");
-    setNewNumber("");
+    const personObject = { name: newName, number: newNumber };
+    personService.create(personObject).then((response) => {
+      console.log("post response", response);
+      setPersons(persons.concat(response.data));
+      setNewName("");
+      setNewNumber("");
+    });
+
+    //setPersons(persons.concat({ name: newName, number: newNumber }));
+  };
+
+  const handleDelete = (id) => {
+    console.log(id);
+    const thisPerson = persons.filter((n) => n.id === id)[0].name;
+
+    if (confirm(`Are you sure you want to delete ${thisPerson}?`)) {
+      console.log("yes daw");
+      const newPersons = persons.filter((n) => n.id !== id);
+      personService.deleteEntry(id).then((response) => {
+        console.log(response.data);
+        setPersons(newPersons);
+      });
+    } else {
+      console.log("no daw");
+      return;
+    }
   };
 
   return (
@@ -105,8 +159,9 @@ const App = () => {
         .map((element) => (
           <Persons
             name={element.name}
-            key={element.name}
+            key={element.id}
             number={element.number}
+            handleDelete={() => handleDelete(element.id)}
           />
         ))}
     </div>

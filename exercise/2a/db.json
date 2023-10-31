@@ -22,7 +22,7 @@
     },
     {
       "content": "Jump to the backwards",
-      "important": false,
+      "important": true,
       "id": 5
     }
   ]

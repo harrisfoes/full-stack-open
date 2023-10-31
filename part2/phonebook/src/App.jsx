@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import personService from "./services/persons";
 
+const Notification = ({ message, classType }) => {
+  if (message === null) {
+    return null;
+  }
+
+  return <div className={classType}>{message}</div>;
+};
+
 const Persons = ({ name, number, handleDelete }) => {
   return (
     <div>
@@ -46,6 +54,8 @@ const App = () => {
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [searchFilter, setSearchFilter] = useState("");
+  const [confirmMessage, setConfirmMessage] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const hook = () => {
     console.log("effect");
@@ -97,6 +107,14 @@ const App = () => {
                 person.id == updatedPerson.id ? response.data : person
               )
             );
+          })
+          .catch((error) => {
+            setErrorMessage(
+              `Information on '${updatedPerson.name}' was already removed from server`
+            );
+            setTimeout(() => {
+              setErrorMessage(null);
+            }, 5000);
           });
       } else {
         return;
@@ -110,6 +128,13 @@ const App = () => {
     personService.create(personObject).then((response) => {
       console.log("post response", response);
       setPersons(persons.concat(response.data));
+
+      setConfirmMessage(`Added ${newName} `);
+      console.log(`added ${newName}`);
+      setTimeout(() => {
+        setConfirmMessage(null);
+      }, 5000);
+
       setNewName("");
       setNewNumber("");
     });
@@ -137,6 +162,8 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={confirmMessage} classType="confirm" />
+      <Notification message={errorMessage} classType="error" />
       <Filter
         searchFilter={searchFilter}
         handleSearchFilter={handleSearchFilter}

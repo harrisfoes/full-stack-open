@@ -39,12 +39,32 @@ const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: "unknown endpoint" });
 };
 
+/* Mongo declarations */
+const mongoose = require("mongoose");
+
+const password = process.argv[2];
+
+const url = `mongodb+srv://harrisfoes:${password}@cluster0.xmafjtn.mongodb.net/noteApp?retryWrites=true&w=majority`;
+
+mongoose.set("strictQuery", false);
+mongoose.connect(url);
+
+const noteSchema = new mongoose.Schema({
+  content: String,
+  important: Boolean,
+});
+
+const Note = mongoose.model("Note", noteSchema);
+/* */
+
 app.get("/", (request, response) => {
   response.send("<h1>Hello World! </h1>");
 });
 
 app.get("/api/notes", (request, response) => {
-  response.json(notes);
+  Note.find({}).then((notes) => {
+    response.json(notes);
+  });
 });
 
 app.get("/api/notes/:id", (request, response) => {
